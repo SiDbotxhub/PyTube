@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamTube</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>StreamTube</h1>
+            
+            <div class="section">
+                <h2>Home</h2>
+                <ul>
+                    <li><a href="#" id="search-link">Search</a></li>
+                    <li><a href="#" id="library-link">Your Library</a></li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <ul>
+                    <li><a href="#" id="create-playlist">+ Create Playlist</a></li>
+                    <li><a href="#" id="liked-songs">Liked Songs</a></li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>RECENTLY PLAYED</h2>
+                <ul id="recently-played">
+                    <!-- Filled by JavaScript -->
+                </ul>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <h1 id="greeting">Good evening</h1>
+            <p id="subtitle">Ready to discover amazing music from YouTube?</p>
+            
+            <div class="quick-access">
+                <div class="card" id="liked-songs-card">
+                    <h3>Liked Songs</h3>
+                </div>
+                <div class="card" id="recently-played-card">
+                    <h3>Recently Played</h3>
+                </div>
+                <div class="card" id="discover-weekly-card">
+                    <h3>Discover Weekly</h3>
+                </div>
+            </div>
+            
+            <div class="search-section">
+                <h2>Start your music journey</h2>
+                <p>Search for your favorite songs on YouTube and start building your library</p>
+                
+                <form id="search-form">
+                    <input type="text" id="search-input" placeholder="Search for songs...">
+                    <button type="submit">Search Music</button>
+                </form>
+                
+                <div id="search-results" class="hidden">
+                    <h3>Search Results</h3>
+                    <ul id="results-list"></ul>
+                </div>
+            </div>
+            
+            <audio id="audio-player" controls></audio>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update greeting based on time of day
+            updateGreeting();
+            
+            // Load recently played items
+            loadRecentlyPlayed();
+            
+            // Setup search form
+            document.getElementById('search-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const query = document.getElementById('search-input').value;
+                if (query.trim()) {
+                    searchMusic(query);
+                }
+            });
+            
+            // Quick access click handlers
+            document.getElementById('liked-songs-card').addEventListener('click', function() {
+                alert('Liked songs feature coming soon!');
+            });
+            
+            document.getElementById('recently-played-card').addEventListener('click', function() {
+                loadRecentlyPlayed();
+            });
+            
+            document.getElementById('discover-weekly-card').addEventListener('click', function() {
+                alert('Discover weekly feature coming soon!');
+            });
+        });
+        
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = "Good evening";
+            
+            if (hour < 12) {
+                greeting = "Good morning";
+            } else if (hour < 18) {
+                greeting = "Good afternoon";
+            }
+            
+            document.getElementById('greeting').textContent = greeting;
+        }
+        
+        async function loadRecentlyPlayed() {
+            const response = await fetch('/api/recently_played');
+            const data = await response.json();
+            
+            const list = document.getElementById('recently-played');
+            list.innerHTML = '';
+            
+            data.recently_played.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.title;
+                list.appendChild(li);
+            });
+        }
+        
+        async function searchMusic(query) {
+            const formData = new FormData();
+            formData.append('query', query);
+            
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            displayResults(data.songs);
+        }
+        
+        function displayResults(songs) {
+            const resultsDiv = document.getElementById('search-results');
+            const resultsList = document.getElementById('results-list');
+            
+            resultsList.innerHTML = '';
+            resultsDiv.classList.remove('hidden');
+            
+            songs.forEach(song => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="song-item">
+                        <img src="${song.thumbnail}" alt="${song.title}" class="thumbnail">
+                        <div class="song-info">
+                            <h4>${song.title}</h4>
+                            <span>${song.duration}</span>
+                        </div>
+                        <button class="play-btn" data-url="${song.url}">Play</button>
+                    </div>
+                `;
+                resultsList.appendChild(li);
+            });
+            
+            // Add event listeners to play buttons
+            document.querySelectorAll('.play-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const audioPlayer = document.getElementById('audio-player');
+                    audioPlayer.src = this.getAttribute('data-url');
+                    audioPlayer.play();
+                });
+            });
+        }
+    </script>
+</body>
+</html>
