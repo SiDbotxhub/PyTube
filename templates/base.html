@@ -6,7 +6,24 @@
     <meta name="theme-color" content="#121212">
     <title>StreamTube</title>
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="/manifest.json">
+    <style>
+        .emoji-icon {
+            font-size: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bottom-nav .nav-item span {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -14,10 +31,10 @@
         <header class="app-header">
             <div class="header-left">
                 <button class="nav-btn back-btn">
-                    <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"></path></svg>
+                    <span class="emoji-icon">◀</span>
                 </button>
                 <button class="nav-btn forward-btn">
-                    <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg>
+                    <span class="emoji-icon">▶</span>
                 </button>
             </div>
             <div class="header-center">
@@ -25,7 +42,7 @@
             </div>
             <div class="header-right">
                 <button class="user-btn">
-                    <img src="/static/icons/user.png" alt="User">
+                    <span class="emoji-icon">👤</span>
                 </button>
             </div>
         </header>
@@ -38,15 +55,15 @@
         <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <a href="/" class="nav-item">
-                <img src="/static/icons/home.svg" alt="Home">
+                <span class="emoji-icon">🏠</span>
                 <span>Home</span>
             </a>
             <a href="/search" class="nav-item">
-                <img src="/static/icons/search.svg" alt="Search">
+                <span class="emoji-icon">🔍</span>
                 <span>Search</span>
             </a>
             <a href="/library" class="nav-item">
-                <img src="/static/icons/library.svg" alt="Library">
+                <span class="emoji-icon">📚</span>
                 <span>Library</span>
             </a>
         </nav>
@@ -54,20 +71,20 @@
         <!-- Player Bar -->
         <div class="player-bar">
             <div class="player-info">
-                <img src="" alt="Album cover" class="now-playing-cover">
+                <span class="emoji-icon">🎵</span>
                 <div class="song-info">
                     <div class="song-title">Not Playing</div>
                     <div class="song-artist">Select a song</div>
                 </div>
-                <button class="like-btn"><i class="far fa-heart"></i></button>
+                <button class="like-btn"><span class="emoji-icon">❤️</span></button>
             </div>
             
             <div class="player-controls">
-                <button class="control-btn shuffle-btn"><i class="fas fa-random"></i></button>
-                <button class="control-btn prev-btn"><i class="fas fa-step-backward"></i></button>
-                <button class="control-btn play-btn"><i class="fas fa-play"></i></button>
-                <button class="control-btn next-btn"><i class="fas fa-step-forward"></i></button>
-                <button class="control-btn repeat-btn"><i class="fas fa-redo"></i></button>
+                <button class="control-btn shuffle-btn"><span class="emoji-icon">🔀</span></button>
+                <button class="control-btn prev-btn"><span class="emoji-icon">⏮</span></button>
+                <button class="control-btn play-btn"><span class="emoji-icon">▶️</span></button>
+                <button class="control-btn next-btn"><span class="emoji-icon">⏭</span></button>
+                <button class="control-btn repeat-btn"><span class="emoji-icon">🔁</span></button>
             </div>
             
             <div class="player-progress">
@@ -84,10 +101,23 @@
     <div class="player-modal hidden">
         <div class="player-modal-content">
             <div class="modal-header">
-                <button class="close-modal"><i class="fas fa-chevron-down"></i></button>
+                <button class="close-modal"><span class="emoji-icon">⬇️</span></button>
             </div>
             <div class="modal-body">
-                <!-- Content will be loaded here -->
+                <div class="album-art">
+                    <span class="emoji-icon" style="font-size: 120px;">🎵</span>
+                </div>
+                <div class="track-info">
+                    <h2>Now Playing</h2>
+                    <p>Artist Name</p>
+                </div>
+                <div class="player-controls-modal">
+                    <button class="control-btn"><span class="emoji-icon">🔀</span></button>
+                    <button class="control-btn"><span class="emoji-icon">⏮</span></button>
+                    <button class="control-btn play-btn"><span class="emoji-icon">⏸</span></button>
+                    <button class="control-btn"><span class="emoji-icon">⏭</span></button>
+                    <button class="control-btn"><span class="emoji-icon">🔁</span></button>
+                </div>
             </div>
         </div>
     </div>
