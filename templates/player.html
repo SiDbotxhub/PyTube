@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="player-view">
+    <div class="player-header">
+        <h1>Now Playing</h1>
+    </div>
+    
+    <div class="player-main">
+        <div class="album-art">
+            <img src="{{ video_details.thumbnail }}" alt="Album cover">
+        </div>
+        
+        <div class="song-details">
+            <h2 class="song-title">{{ video_details.title }}</h2>
+            <p class="song-artist">{{ video_details.artist }}</p>
+            
+            <div class="player-controls expanded">
+                <div class="controls-top">
+                    <button class="control-btn shuffle-btn"><i class="fas fa-random"></i></button>
+                    <button class="control-btn prev-btn"><i class="fas fa-step-backward"></i></button>
+                    <button class="control-btn play-btn main-play"><i class="fas fa-play"></i></button>
+                    <button class="control-btn next-btn"><i class="fas fa-step-forward"></i></button>
+                    <button class="control-btn repeat-btn"><i class="fas fa-redo"></i></button>
+                </div>
+                
+                <div class="progress-container expanded">
+                    <span class="time-current">0:00</span>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                    <span class="time-total">{{ video_details.duration }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="queue-section">
+        <h3>Next In Queue</h3>
+        <div class="queue-list">
+            <!-- Queue items would go here -->
+            <div class="queue-item">
+                <p>No songs in queue</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<audio id="audio-element" src="{{ stream_url }}"></audio>
+{% endblock %}
