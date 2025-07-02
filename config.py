@@ -1,13 +1,21 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
-    # Database configuration
-    MONGO_URI = os.getenv("MONGO_URI", None)
+    # App Config
+    DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+    CACHE_TIMEOUT = int(os.getenv("CACHE_TIMEOUT", "3600"))  # 1 hour
+    
+    # Database
+    MONGO_URI = os.getenv("MONGO_URI")
     USE_DATABASE = bool(MONGO_URI)
     
-    # API configuration
-    STREAM_API_BASE = "http://deadlinetech.site/stream"
-    STREAM_API_KEY = "dc5lhBaaA2qHctJMQFjMyJgF"
+    # YouTube API
+    YT_THUMBNAIL_URL = "https://img.youtube.com/vi/{video_id}/mqdefault.jpg"
+    STREAM_API_URL = "http://deadlinetech.site/stream/{video_id}?key=dc5lhBaaA2qHctJMQFjMyJgF"
     
-    # App configuration
-    DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+    # Cache Settings
+    CACHE_DIR = ".cache"
+    MAX_CACHE_SIZE = 50  # Max items to cache
