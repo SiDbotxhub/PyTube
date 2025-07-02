@@ -60,6 +60,42 @@ async def get_location():
                 return data.get('city', 'your location')
     except:
         return "your location"
+        
+async def get_location_endpoint(request):
+    """
+    Get city name from coordinates using Nominatim (OpenStreetMap)
+    Requires 'aiohttp' and 'async_timeout'
+    """
+    lat = request.query.get('lat')
+    lon = request.query.get('lon')
+    
+    if not lat or not lon:
+        return web.json_response({'city': 'your location'}, status=400)
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            # Using Nominatim API (free tier)
+            url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
+            
+            # Set a proper user-agent header as required by Nominatim
+            headers = {
+                'User-Agent': 'StreamTube Music App (your-email@example.com)'
+            }
+            
+            async with session.get(url, headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    city = data.get('address', {}).get('city') or \
+                           data.get('address', {}).get('town') or \
+                           data.get('address', {}).get('village') or \
+                           'your location'
+                    return web.json_response({'city': city})
+                return web.json_response({'city': 'your location'})
+    
+    except Exception as e:
+        print(f"Location error: {str(e)}")
+        return web.json_response({'city': 'your location'})
+
 async def index(request):
     # Get user's location
     location = await get_location()  # Implement this function to get real location
@@ -131,19 +167,13 @@ async def get_liked_songs(request):
     # Implement actual DB query if needed
     return web.json_response({'songs': []})
     
-@app.route('/api/location')
-async def get_location_endpoint(request):
-    lat = request.query.get('lat')
-    lon = request.query.get('lon')
-    # Use a geocoding service to get city name
-    return web.json_response({'city': 'Patna'})  # Mock response
-    
 def setup_routes(app):
     app.router.add_get('/', index)
     app.router.add_get('/search', index)  # Search view
     app.router.add_get('/library', index)  # Library view
     app.router.add_get('/player/{video_id}', player)
-    
+
+    app.router.add_get('/api/location', get_location_endpoint)
     # API endpoints
     app.router.add_get('/api/search', search)
     app.router.add_post('/api/like', like_song)
