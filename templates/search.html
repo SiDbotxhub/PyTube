@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="search-header">
+    <h1>Search</h1>
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="What do you want to listen to?" id="search-input" value="{{ query }}">
+    </div>
+</div>
+
+<div class="search-results" id="search-results">
+    <div class="results-placeholder">
+        <i class="fas fa-music"></i>
+        <p>Search for songs, artists, or albums</p>
+    </div>
+</div>
+{% endblock %}
