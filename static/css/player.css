@@ -1,1 +1,115 @@
-
+document.addEventListener('DOMContentLoaded', function() {
+    const audio = document.getElementById('audio-element');
+    const playBtn = document.querySelector('.play-btn');
+    const progressBar = document.querySelector('.progress-bar');
+    const progress = document.querySelector('.progress');
+    const currentTimeEl = document.querySelector('.time-current');
+    const totalTimeEl = document.querySelector('.time-total');
+    const volumeSlider = document.querySelector('.volume-slider');
+    const likeBtn = document.querySelector('.like-btn');
+    const shuffleBtn = document.querySelector('.shuffle-btn');
+    const repeatBtn = document.querySelector('.repeat-btn');
+    
+    let isPlaying = false;
+    let isShuffled = false;
+    let isRepeated = false;
+    let isLiked = false;
+    
+    // Play/Pause
+    playBtn.addEventListener('click', togglePlay);
+    
+    function togglePlay() {
+        if (isPlaying) {
+            audio.pause();
+            playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        } else {
+            audio.play();
+            playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        }
+        isPlaying = !isPlaying;
+    }
+    
+    // Progress Bar
+    audio.addEventListener('timeupdate', updateProgress);
+    
+    function updateProgress() {
+        const { duration, currentTime } = audio;
+        const progressPercent = (currentTime / duration) * 100;
+        progress.style.width = `${progressPercent}%`;
+        
+        // Update time display
+        currentTimeEl.textContent = formatTime(currentTime);
+    }
+    
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    
+    // Click on progress bar to seek
+    progressBar.addEventListener('click', setProgress);
+    
+    function setProgress(e) {
+        const width = this.clientWidth;
+        const clickX = e.offsetX;
+        const duration = audio.duration;
+        audio.currentTime = (clickX / width) * duration;
+    }
+    
+    // Volume control
+    volumeSlider.addEventListener('input', setVolume);
+    
+    function setVolume() {
+        audio.volume = this.value / 100;
+    }
+    
+    // Like button
+    likeBtn.addEventListener('click', toggleLike);
+    
+    function toggleLike() {
+        isLiked = !isLiked;
+        likeBtn.innerHTML = isLiked ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+        
+        // Here you would call API to like/unlike the song
+        const songId = window.location.pathname.split('/').pop();
+        fetch('/api/like', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ song_id: songId })
+        });
+    }
+    
+    // Shuffle
+    shuffleBtn.addEventListener('click', toggleShuffle);
+    
+    function toggleShuffle() {
+        isShuffled = !isShuffled;
+        shuffleBtn.style.color = isShuffled ? 'var(--primary)' : 'var(--text-secondary)';
+    }
+    
+    // Repeat
+    repeatBtn.addEventListener('click', toggleRepeat);
+    
+    function toggleRepeat() {
+        isRepeated = !isRepeated;
+        repeatBtn.style.color = isRepeated ? 'var(--primary)' : 'var(--text-secondary)';
+        audio.loop = isRepeated;
+    }
+    
+    // Initialize
+    if (audio.readyState > 0) {
+        totalTimeEl.textContent = formatTime(audio.duration);
+    } else {
+        audio.addEventListener('loadedmetadata', function() {
+            totalTimeEl.textContent = formatTime(audio.duration);
+        });
+    }
+    
+    // Play audio when page loads
+    audio.play();
+    isPlaying = true;
+    playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+});
