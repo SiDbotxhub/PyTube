@@ -590,3 +590,265 @@ body {
         justify-content: center;
     }
 }
+
+
+
+/* Library Page Styles */
+.library-header {
+    margin-bottom: 24px;
+}
+
+.library-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--surface-light);
+    margin-top: 16px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: var(--text-primary);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.create-playlist-card {
+    background-color: var(--surface-light);
+    border-radius: 8px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 24px;
+}
+
+.create-playlist-card:hover {
+    background-color: #3e3e3e;
+}
+
+.create-content {
+    text-align: center;
+}
+
+.create-content i {
+    font-size: 48px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.create-content h3 {
+    color: var(--text-primary);
+}
+
+.playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+}
+
+.playlist-card {
+    background-color: var(--surface-light);
+    border-radius: 8px;
+    padding: 16px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.playlist-card:hover {
+    background-color: #3e3e3e;
+}
+
+.playlist-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.playlist-name {
+    font-size: 16px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlist-count {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.liked-songs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.liked-info h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+#liked-count {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.play-all-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 500px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.play-all-btn i {
+    margin-right: 8px;
+}
+
+.play-all-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.songs-list {
+    background-color: var(--surface-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.song-item {
+    display: grid;
+    grid-template-columns: 24px 48px 3fr 1fr 48px;
+    align-items: center;
+    padding: 12px 16px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.song-item:hover {
+    background-color: #3e3e3e;
+}
+
+.song-number {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.song-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    margin: 0 16px;
+}
+
+.song-info h4 {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.song-info p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.song-duration {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: right;
+}
+
+.song-menu {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: auto;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.recent-header {
+    margin-bottom: 16px;
+}
+
+.recent-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.recent-item:hover {
+    background-color: var(--surface-light);
+}
+
+.recent-thumbnail {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    margin-right: 16px;
+}
+
+.recent-info h4 {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.recent-info p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.recent-play {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-left: auto;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.recent-play:hover {
+    color: var(--primary);
+}
