@@ -130,7 +130,14 @@ async def like_song(request):
 async def get_liked_songs(request):
     # Implement actual DB query if needed
     return web.json_response({'songs': []})
-
+    
+@app.route('/api/location')
+async def get_location_endpoint(request):
+    lat = request.query.get('lat')
+    lon = request.query.get('lon')
+    # Use a geocoding service to get city name
+    return web.json_response({'city': 'Patna'})  # Mock response
+    
 def setup_routes(app):
     app.router.add_get('/', index)
     app.router.add_get('/search', index)  # Search view
