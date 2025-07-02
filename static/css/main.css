@@ -852,3 +852,96 @@ body {
 .recent-play:hover {
     color: var(--primary);
 }
+
+
+/* Greeting Section */
+.greeting-container {
+    margin-bottom: 30px;
+}
+
+.greeting-time {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.greeting-location {
+    font-size: 1.1rem;
+    color: #b3b3b3;
+    margin: 0;
+}
+
+/* Quick Links Grid */
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.section-card {
+    border-radius: 8px;
+    padding: 20px;
+    height: 120px;
+    display: flex;
+    align-items: flex-end;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.section-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+}
+
+.section-card:hover {
+    transform: scale(1.02);
+}
+
+.section-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.section-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.section-content p {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+    margin: 0;
+}
+
+/* Specific Card Backgrounds */
+.liked-songs {
+    background: linear-gradient(135deg, #450af5 0%, #8e8ee5 100%);
+}
+
+.recently-played {
+    background: linear-gradient(135deg, #1e3264 0%, #a56752 100%);
+}
+
+.trending {
+    background: linear-gradient(135deg, #056952 0%, #5b8a72 100%);
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: white;
+}
