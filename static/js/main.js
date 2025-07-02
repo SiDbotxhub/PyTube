@@ -181,4 +181,16 @@ function displayLikedSongs(songs) {
     document.querySelectorAll('.song-item .play-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const songId = this.closest('.song-item').getAttribute('data-
+            const songId = this.closest('.song-item').getAttribute('data-id');
+            window.location.href = `/player/${songId}`;
+        });
+    });
+    
+    // Click on song item
+    document.querySelectorAll('.song-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const songId = this.getAttribute('data-id');
+            window.location.href = `/player/${songId}`;
+        });
+    });
+}
