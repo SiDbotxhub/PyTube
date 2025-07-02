@@ -9,8 +9,8 @@ from youtube_search import YoutubeSearch
 from config import Config
 import asyncio
 import aiofiles
-import datetime
-# Initialize cache directory
+from datetime import datetime, timezone
+hour = datetime.now(timezone.utc).hour# Initialize cache directory
 os.makedirs(Config.CACHE_DIR, exist_ok=True)
 
 async def get_cached_data(key):
