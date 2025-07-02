@@ -47,10 +47,44 @@ async def clear_old_cache():
             except:
                 os.remove(cache_file)
 
+async def get_location():
+    """Get user's approximate location"""
+    try:
+        # Try HTML5 Geolocation first
+        # (This would need to be implemented in your frontend JavaScript)
+        
+        # Fallback to IP-based location
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://ipinfo.io/json') as resp:
+                data = await resp.json()
+                return data.get('city', 'your location')
+    except:
+        return "your location"
 async def index(request):
-    await clear_old_cache()
-    return aiohttp_jinja2.render_template('home.html', request, {})
-
+    # Get user's location
+    location = await get_location()  # Implement this function to get real location
+    
+    # Determine time-based greeting
+    hour = datetime.now().hour
+    if hour < 12:
+        greeting = "Good morning"
+    elif hour < 18:
+        greeting = "Good afternoon"
+    else:
+        greeting = "Good evening"
+    
+    # Get liked songs count (mock data - replace with real DB query)
+    liked_count = 0
+    if Config.USE_DATABASE:
+        liked_count = await liked_songs.count_documents({'user_id': 'current_user'})
+    
+    context = {
+        'greeting': greeting,
+        'location': location,
+        'liked_count': liked_count
+    }
+    return aiohttp_jinja2.render_template('home.html', request, context)
+    
 async def search(request):
     query = request.query.get('q', '')
     cache_key = f"search_{query.lower()}"
