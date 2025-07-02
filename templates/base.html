@@ -3,89 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamTube - Spotify-like Music Player</title>
+    <meta name="theme-color" content="#121212">
+    <title>StreamTube</title>
     <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <i class="fas fa-music"></i>
-                <span>StreamTube</span>
+        <!-- Top Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <button class="nav-btn back-btn">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"></path></svg>
+                </button>
+                <button class="nav-btn forward-btn">
+                    <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg>
+                </button>
             </div>
-            
-            <nav class="main-nav">
-                <a href="/" class="nav-item {% if active_page == 'home' %}active{% endif %}">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="/search" class="nav-item {% if active_page == 'search' %}active{% endif %}">
-                    <i class="fas fa-search"></i>
-                    <span>Search</span>
-                </a>
-                <a href="/library" class="nav-item {% if active_page == 'library' %}active{% endif %}">
-                    <i class="fas fa-book"></i>
-                    <span>Your Library</span>
-                </a>
-            </nav>
-            
-            <div class="playlists">
-                <div class="playlist-header">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Create Playlist</span>
-                </div>
-                <div class="playlist-item liked-songs">
-                    <i class="fas fa-heart"></i>
-                    <span>Liked Songs</span>
-                </div>
+            <div class="header-center">
+                <h1 class="header-title">{% block header_title %}{% endblock %}</h1>
             </div>
-        </div>
-        
+            <div class="header-right">
+                <button class="user-btn">
+                    <img src="/static/icons/user.png" alt="User">
+                </button>
+            </div>
+        </header>
+
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="app-main">
             {% block content %}{% endblock %}
         </main>
-        
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="/" class="nav-item">
+                <img src="/static/icons/home.svg" alt="Home">
+                <span>Home</span>
+            </a>
+            <a href="/search" class="nav-item">
+                <img src="/static/icons/search.svg" alt="Search">
+                <span>Search</span>
+            </a>
+            <a href="/library" class="nav-item">
+                <img src="/static/icons/library.svg" alt="Library">
+                <span>Library</span>
+            </a>
+        </nav>
+
         <!-- Player Bar -->
         <div class="player-bar">
             <div class="player-info">
-                <img src="https://i.ytimg.com/vi/default.jpg" alt="Song cover" class="now-playing-cover">
+                <img src="" alt="Album cover" class="now-playing-cover">
                 <div class="song-info">
                     <div class="song-title">Not Playing</div>
-                    <div class="song-artist">Select a song to play</div>
+                    <div class="song-artist">Select a song</div>
                 </div>
                 <button class="like-btn"><i class="far fa-heart"></i></button>
             </div>
             
             <div class="player-controls">
-                <div class="controls-top">
-                    <button class="control-btn shuffle-btn"><i class="fas fa-random"></i></button>
-                    <button class="control-btn prev-btn"><i class="fas fa-step-backward"></i></button>
-                    <button class="control-btn play-btn"><i class="fas fa-play"></i></button>
-                    <button class="control-btn next-btn"><i class="fas fa-step-forward"></i></button>
-                    <button class="control-btn repeat-btn"><i class="fas fa-redo"></i></button>
-                </div>
-                <div class="progress-container">
-                    <span class="time-current">0:00</span>
-                    <div class="progress-bar">
-                        <div class="progress"></div>
-                    </div>
-                    <span class="time-total">0:00</span>
-                </div>
+                <button class="control-btn shuffle-btn"><i class="fas fa-random"></i></button>
+                <button class="control-btn prev-btn"><i class="fas fa-step-backward"></i></button>
+                <button class="control-btn play-btn"><i class="fas fa-play"></i></button>
+                <button class="control-btn next-btn"><i class="fas fa-step-forward"></i></button>
+                <button class="control-btn repeat-btn"><i class="fas fa-redo"></i></button>
             </div>
             
-            <div class="player-extra">
-                <div class="volume-control">
-                    <i class="fas fa-volume-up"></i>
-                    <input type="range" min="0" max="100" value="80" class="volume-slider">
+            <div class="player-progress">
+                <span class="time-current">0:00</span>
+                <div class="progress-bar">
+                    <div class="progress"></div>
                 </div>
+                <span class="time-total">0:00</span>
             </div>
         </div>
     </div>
-    
-    <script src="/static/js/main.js"></script>
+
+    <!-- Player Modal -->
+    <div class="player-modal hidden">
+        <div class="player-modal-content">
+            <div class="modal-header">
+                <button class="close-modal"><i class="fas fa-chevron-down"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/cache.js"></script>
+    <script src="/static/js/app.js"></script>
     <script src="/static/js/player.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
