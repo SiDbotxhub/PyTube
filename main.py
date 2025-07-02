@@ -2,131 +2,120 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 from pathlib import Path
+import os
+import json
+import time
 from youtube_search import YoutubeSearch
 from config import Config
-import json
-import os
-from datetime import datetime
 import asyncio
-import requests
-from urllib.parse import quote
+import aiofiles
 
-# Database setup
-if Config.USE_DATABASE:
-    from motor.motor_asyncio import AsyncIOMotorClient
-    db_client = AsyncIOMotorClient(Config.MONGO_URI)
-    db = db_client.get_default_database()
-    users = db.users
-    playlists = db.playlists
-    liked_songs = db.liked_songs
+# Initialize cache directory
+os.makedirs(Config.CACHE_DIR, exist_ok=True)
 
-async def get_location():
-    try:
-        response = requests.get('https://ipinfo.io/json')
-        data = response.json()
-        return data.get('city', 'your location')
-    except:
-        return 'your location'
+async def get_cached_data(key):
+    cache_file = Path(Config.CACHE_DIR) / f"{key}.json"
+    if not cache_file.exists():
+        return None
+    
+    async with aiofiles.open(cache_file, 'r') as f:
+        data = await f.read()
+        try:
+            return json.loads(data)
+        except json.JSONDecodeError:
+            return None
+
+async def set_cached_data(key, data, timeout=Config.CACHE_TIMEOUT):
+    cache_file = Path(Config.CACHE_DIR) / f"{key}.json"
+    cache_data = {
+        'data': data,
+        'expires': time.time() + timeout
+    }
+    async with aiofiles.open(cache_file, 'w') as f:
+        await f.write(json.dumps(cache_data))
+
+async def clear_old_cache():
+    now = time.time()
+    cache_files = Path(Config.CACHE_DIR).glob('*.json')
+    
+    for cache_file in cache_files:
+        async with aiofiles.open(cache_file, 'r') as f:
+            try:
+                data = json.loads(await f.read())
+                if data.get('expires', 0) < now:
+                    os.remove(cache_file)
+            except:
+                os.remove(cache_file)
 
 async def index(request):
-    location = await get_location()
-    context = {
-        'location': location,
-        'greeting': get_greeting()
-    }
-    return aiohttp_jinja2.render_template('home.html', request, context)
+    await clear_old_cache()
+    return aiohttp_jinja2.render_template('home.html', request, {})
 
-async def search_view(request):
+async def search(request):
     query = request.query.get('q', '')
-    context = {'query': query}
-    return aiohttp_jinja2.render_template('search.html', request, context)
-
-async def library_view(request):
-    return aiohttp_jinja2.render_template('library.html', request, {})
-
-async def player_view(request):
-    video_id = request.match_info.get('video_id')
-    stream_url = f"{Config.STREAM_API_BASE}/{video_id}?key={Config.STREAM_API_KEY}"
+    cache_key = f"search_{query.lower()}"
     
-    # Get video details (you would normally fetch this from YouTube API)
-    video_details = {
-        'title': "Currently Playing",
-        'artist': "Artist Name",
-        'duration': "3:45",
-        'thumbnail': "https://i.ytimg.com/vi/default.jpg"
-    }
+    # Try to get from cache first
+    cached = await get_cached_data(cache_key)
+    if cached:
+        return web.json_response(cached['data'])
     
-    context = {
-        'stream_url': stream_url,
-        'video_details': video_details
-    }
-    return aiohttp_jinja2.render_template('player.html', request, context)
-
-async def api_search(request):
-    query = request.query.get('q', '')
     results = YoutubeSearch(query, max_results=15).to_dict()
+    processed = []
     
-    songs = []
     for result in results:
-        songs.append({
+        processed.append({
             'id': result['id'],
             'title': result['title'],
             'artist': result.get('channel', 'Unknown Artist'),
             'duration': result['duration'],
-            'thumbnail': result['thumbnails'][0],
+            'thumbnail': Config.YT_THUMBNAIL_URL.format(video_id=result['id']),
             'url': f"/player/{result['id']}"
         })
     
-    return web.json_response({'results': songs})
+    response_data = {'results': processed}
+    await set_cached_data(cache_key, response_data)
+    return web.json_response(response_data)
 
-async def api_like_song(request):
+async def player(request):
+    video_id = request.match_info.get('video_id')
+    return aiohttp_jinja2.render_template('player.html', request, {
+        'video_id': video_id,
+        'stream_url': Config.STREAM_API_URL.format(video_id=video_id),
+        'thumbnail': Config.YT_THUMBNAIL_URL.format(video_id=video_id)
+    })
+
+async def like_song(request):
     if not Config.USE_DATABASE:
         return web.json_response({'status': 'Database not configured'}, status=400)
     
     data = await request.json()
-    await liked_songs.insert_one({
-        'user_id': 'current_user',  # Replace with actual user ID
-        'song_id': data['song_id'],
-        'timestamp': datetime.now()
-    })
+    await set_cached_data(f"liked_{data['user_id']}_{data['song_id']}", {'liked': True})
     return web.json_response({'status': 'success'})
 
-async def api_get_liked_songs(request):
-    if not Config.USE_DATABASE:
-        return web.json_response({'songs': []})
-    
-    songs = await liked_songs.find({'user_id': 'current_user'}).to_list(100)
-    return web.json_response({'songs': songs})
-
-def get_greeting():
-    hour = datetime.now().hour
-    if hour < 12:
-        return "Good morning"
-    elif hour < 18:
-        return "Good afternoon"
-    else:
-        return "Good evening"
+async def get_liked_songs(request):
+    # Implement actual DB query if needed
+    return web.json_response({'songs': []})
 
 def setup_routes(app):
-    # Views
     app.router.add_get('/', index)
-    app.router.add_get('/search', search_view)
-    app.router.add_get('/library', library_view)
-    app.router.add_get('/player/{video_id}', player_view)
+    app.router.add_get('/search', index)  # Search view
+    app.router.add_get('/library', index)  # Library view
+    app.router.add_get('/player/{video_id}', player)
     
-    # API Endpoints
-    app.router.add_get('/api/search', api_search)
-    app.router.add_post('/api/like', api_like_song)
-    app.router.add_get('/api/liked', api_get_liked_songs)
+    # API endpoints
+    app.router.add_get('/api/search', search)
+    app.router.add_post('/api/like', like_song)
+    app.router.add_get('/api/liked', get_liked_songs)
     
     # Static files
-    app.router.add_static('/static/', path=str(Path(__file__).parent / 'static'), name='static')
+    app.router.add_static('/static/', path=Path(__file__).parent / 'static')
 
 async def init_app():
     app = web.Application()
     aiohttp_jinja2.setup(
         app,
-        loader=jinja2.FileSystemLoader(str(Path(__file__).parent / 'templates')),
+        loader=jinja2.FileSystemLoader(Path(__file__).parent / 'templates'),
         context_processors=[aiohttp_jinja2.request_processor]
     )
     setup_routes(app)
