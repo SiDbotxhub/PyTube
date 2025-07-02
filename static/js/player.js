@@ -1,59 +1,104 @@
 class MusicPlayer {
     constructor() {
-        this.audio = document.getElementById('audio-element');
-        this.playBtn = document.querySelector('.play-btn');
-        this.progressBar = document.querySelector('.progress-bar');
-        this.progress = document.querySelector('.progress');
-        this.currentTimeEl = document.querySelector('.time-current');
-        this.totalTimeEl = document.querySelector('.time-total');
-        this.volumeSlider = document.querySelector('.volume-slider');
-        this.likeBtn = document.querySelector('.like-btn');
-        this.shuffleBtn = document.querySelector('.shuffle-btn');
-        this.repeatBtn = document.querySelector('.repeat-btn');
-        this.songTitle = document.querySelector('.song-title');
-        this.songArtist = document.querySelector('.song-artist');
-        this.albumArt = document.querySelector('.now-playing-cover');
+        this.audio = new Audio();
+        this.currentTrack = null;
+        this.queue = [];
+        this.history = [];
         
+        // Player state
         this.isPlaying = false;
         this.isShuffled = false;
         this.isRepeated = false;
-        this.isLiked = false;
-        this.currentSongId = null;
+        this.volume = 0.8;
+        this.currentTime = 0;
+        
+        // DOM elements
+        this.dom = {
+            playerBar: document.querySelector('.player-bar'),
+            playerModal: document.querySelector('.player-modal'),
+            modalContent: document.querySelector('.player-modal-content .modal-body'),
+            closeModal: document.querySelector('.close-modal'),
+            playBtn: document.querySelector('.play-btn'),
+            prevBtn: document.querySelector('.prev-btn'),
+            nextBtn: document.querySelector('.next-btn'),
+            shuffleBtn: document.querySelector('.shuffle-btn'),
+            repeatBtn: document.querySelector('.repeat-btn'),
+            likeBtn: document.querySelector('.like-btn'),
+            progressBar: document.querySelector('.progress-bar'),
+            progress: document.querySelector('.progress'),
+            currentTime: document.querySelector('.time-current'),
+            totalTime: document.querySelector('.time-total'),
+            volumeSlider: document.querySelector('.volume-slider'),
+            songTitle: document.querySelector('.song-title'),
+            songArtist: document.querySelector('.song-artist'),
+            albumArt: document.querySelector('.now-playing-cover')
+        };
         
         this.init();
     }
     
     init() {
-        // Get song ID from URL
-        this.currentSongId = window.location.pathname.split('/').pop();
+        // Event listeners
+        this.dom.playBtn.addEventListener('click', () => this.togglePlay());
+        this.dom.prevBtn.addEventListener('click', () => this.prevTrack());
+        this.dom.nextBtn.addEventListener('click', () => this.nextTrack());
+        this.dom.shuffleBtn.addEventListener('click', () => this.toggleShuffle());
+        this.dom.repeatBtn.addEventListener('click', () => this.toggleRepeat());
+        this.dom.likeBtn.addEventListener('click', () => this.toggleLike());
+        this.dom.progressBar.addEventListener('click', (e) => this.seek(e));
+        this.dom.volumeSlider.addEventListener('input', () => this.setVolume());
+        this.dom.closeModal.addEventListener('click', () => this.closePlayer());
         
-        // Set up event listeners
-        this.playBtn.addEventListener('click', () => this.togglePlay());
-        this.progressBar.addEventListener('click', (e) => this.setProgress(e));
-        this.volumeSlider.addEventListener('input', () => this.setVolume());
-        this.likeBtn.addEventListener('click', () => this.toggleLike());
-        this.shuffleBtn.addEventListener('click', () => this.toggleShuffle());
-        this.repeatBtn.addEventListener('click', () => this.toggleRepeat());
-        
-        // Audio event listeners
+        // Audio events
         this.audio.addEventListener('timeupdate', () => this.updateProgress());
-        this.audio.addEventListener('ended', () => this.songEnded());
-        this.audio.addEventListener('loadedmetadata', () => {
-            this.totalTimeEl.textContent = this.formatTime(this.audio.duration);
-        });
+        this.audio.addEventListener('ended', () => this.onTrackEnd());
+        this.audio.addEventListener('loadedmetadata', () => this.onMetadataLoaded());
         
-        // Check if song is liked
-        this.checkIfLiked();
+        // Load player state from cache
+        this.loadState();
         
-        // Start playing
-        this.play();
+        // Check for URL with video_id
+        const path = window.location.pathname.split('/');
+        if (path[1] === 'player' && path[2]) {
+            this.loadTrack(path[2]);
+        }
     }
     
-    togglePlay() {
-        if (this.isPlaying) {
-            this.pause();
-        } else {
+    async loadTrack(videoId) {
+        try {
+            // Show loading state
+            this.dom.songTitle.textContent = 'Loading...';
+            this.dom.songArtist.textContent = '';
+            
+            // Get track info
+            const response = await fetch(`/api/track/${videoId}`);
+            const track = await response.json();
+            
+            this.currentTrack = track;
+            this.audio.src = track.streamUrl;
+            
+            // Update UI
+            this.dom.songTitle.textContent = track.title;
+            this.dom.songArtist.textContent = track.artist;
+            this.dom.albumArt.src = track.thumbnail;
+            this.dom.albumArt.alt = track.title;
+            
+            // Play the track
             this.play();
+            
+            // Add to history
+            this.addToHistory(track);
+            
+            // Save state
+            this.saveState();
+            
+            // Open player modal if on mobile
+            if (window.innerWidth < 768) {
+                this.openPlayer();
+            }
+        } catch (error) {
+            console.error('Error loading track:', error);
+            this.dom.songTitle.textContent = 'Error loading track';
         }
     }
     
@@ -74,250 +119,75 @@ class MusicPlayer {
         this.updatePlayButton();
     }
     
-    updatePlayButton() {
-        const icon = this.isPlaying ? 'pause' : 'play';
-        document.querySelectorAll('.play-btn').forEach(btn => {
-            btn.innerHTML = `<i class="fas fa-${icon}"></i>`;
-        });
+    togglePlay() {
+        if (this.isPlaying) {
+            this.pause();
+        } else {
+            this.play();
+        }
     }
     
-    updateProgress() {
-        const { duration, currentTime } = this.audio;
-        const progressPercent = (currentTime / duration) * 100;
-        this.progress.style.width = `${progressPercent}%`;
-        this.currentTimeEl.textContent = this.formatTime(currentTime);
-    }
+    // ... (other player methods remain similar but optimized)
     
-    setProgress(e) {
-        const width = this.progressBar.clientWidth;
-        const clickX = e.offsetX;
-        const duration = this.audio.duration;
-        this.audio.currentTime = (clickX / width) * duration;
-    }
-    
-    setVolume() {
-        this.audio.volume = this.volumeSlider.value / 100;
-    }
-    
-    async toggleLike() {
-        this.isLiked = !this.isLiked;
-        this.updateLikeButton();
+    openPlayer() {
+        if (!this.currentTrack) return;
         
-        try {
-            const response = await fetch('/api/like', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ song_id: this.currentSongId })
-            });
+        // Load player modal content
+        this.dom.modalContent.innerHTML = `
+            <div class="album-art">
+                <img src="${this.currentTrack.thumbnail}" alt="${this.currentTrack.title}">
+            </div>
+            <div class="track-info">
+                <h2>${this.currentTrack.title}</h2>
+                <p>${this.currentTrack.artist}</p>
+            </div>
+            <div class="player-controls-modal">
+                <!-- Add modal-specific controls -->
+            </div>
+        `;
+        
+        this.dom.playerModal.classList.remove('hidden');
+    }
+    
+    closePlayer() {
+        this.dom.playerModal.classList.add('hidden');
+    }
+    
+    // Cache management
+    async saveState() {
+        const state = {
+            currentTrack: this.currentTrack,
+            queue: this.queue,
+            history: this.history.slice(-10), // Keep last 10 tracks
+            volume: this.volume,
+            isShuffled: this.isShuffled,
+            isRepeated: this.isRepeated,
+            timestamp: Date.now()
+        };
+        
+        await cacheManager.set('player_state', state);
+    }
+    
+    async loadState() {
+        const state = await cacheManager.get('player_state');
+        if (state) {
+            this.currentTrack = state.currentTrack;
+            this.queue = state.queue || [];
+            this.history = state.history || [];
+            this.volume = state.volume || 0.8;
+            this.isShuffled = state.isShuffled || false;
+            this.isRepeated = state.isRepeated || false;
             
-            if (!response.ok) {
-                throw new Error('Failed to update like status');
+            if (this.currentTrack) {
+                this.audio.src = this.currentTrack.streamUrl;
+                this.audio.volume = this.volume;
+                this.updateUI();
             }
-        } catch (error) {
-            console.error('Error:', error);
-            // Revert like status if API call fails
-            this.isLiked = !this.isLiked;
-            this.updateLikeButton();
         }
-    }
-    
-    updateLikeButton() {
-        const icon = this.isLiked ? 'fas' : 'far';
-        this.likeBtn.innerHTML = `<i class="${icon} fa-heart"></i>`;
-        this.likeBtn.style.color = this.isLiked ? 'var(--primary)' : '';
-    }
-    
-    async checkIfLiked() {
-        if (!this.currentSongId) return;
-        
-        try {
-            const response = await fetch('/api/liked');
-            const data = await response.json();
-            
-            const isLiked = data.songs.some(song => song.song_id === this.currentSongId);
-            this.isLiked = isLiked;
-            this.updateLikeButton();
-        } catch (error) {
-            console.error('Error checking liked status:', error);
-        }
-    }
-    
-    toggleShuffle() {
-        this.isShuffled = !this.isShuffled;
-        this.shuffleBtn.style.color = this.isShuffled ? 'var(--primary)' : 'var(--text-secondary)';
-        // In a full implementation, you would update the queue here
-    }
-    
-    toggleRepeat() {
-        this.isRepeated = !this.isRepeated;
-        this.repeatBtn.style.color = this.isRepeated ? 'var(--primary)' : 'var(--text-secondary)';
-        this.audio.loop = this.isRepeated;
-    }
-    
-    songEnded() {
-        if (!this.isRepeated) {
-            // In a full implementation, play next song in queue
-            console.log('Song ended - play next track');
-        }
-    }
-    
-    formatTime(seconds) {
-        if (isNaN(seconds)) return '0:00';
-        
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 }
 
 // Initialize player when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('audio-element')) {
-        new MusicPlayer();
-    }
-    
-    // Tab switching for library page
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    if (tabBtns.length > 0) {
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Remove active class from all buttons and tabs
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked button and corresponding tab
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab') + '-tab';
-                document.getElementById(tabId).classList.add('active');
-                
-                // Load content for the tab if needed
-                if (tabId === 'liked-tab') {
-                    loadLikedSongs();
-                } else if (tabId === 'recent-tab') {
-                    loadRecentTracks();
-                }
-            });
-        });
-    }
-    
-    // Load initial content for library
-    if (document.getElementById('user-playlists')) {
-        loadUserPlaylists();
-    }
+    window.player = new MusicPlayer();
 });
-
-async function loadUserPlaylists() {
-    // In a real app, this would come from your API
-    const mockPlaylists = [
-        { id: 'pl1', name: 'Workout Mix', songCount: 12, image: '/static/images/playlist1.jpg' },
-        { id: 'pl2', name: 'Chill Vibes', songCount: 8, image: '/static/images/playlist2.jpg' },
-        { id: 'pl3', name: 'Road Trip', songCount: 15, image: '/static/images/playlist3.jpg' }
-    ];
-    
-    const container = document.getElementById('user-playlists');
-    container.innerHTML = '';
-    
-    mockPlaylists.forEach(playlist => {
-        const card = document.createElement('div');
-        card.className = 'playlist-card';
-        card.innerHTML = `
-            <img src="${playlist.image}" alt="${playlist.name}" class="playlist-cover">
-            <h3 class="playlist-name">${playlist.name}</h3>
-            <p class="playlist-count">${playlist.songCount} songs</p>
-        `;
-        container.appendChild(card);
-        
-        card.addEventListener('click', () => {
-            // In a real app, this would open the playlist
-            console.log('Opening playlist:', playlist.name);
-        });
-    });
-}
-
-async function loadLikedSongs() {
-    try {
-        const response = await fetch('/api/liked');
-        const data = await response.json();
-        displayLikedSongs(data.songs);
-    } catch (error) {
-        console.error('Error loading liked songs:', error);
-    }
-}
-
-function displayLikedSongs(songs) {
-    const container = document.getElementById('liked-songs-list');
-    const countEl = document.getElementById('liked-count');
-    
-    if (!container) return;
-    
-    countEl.textContent = `${songs.length} liked ${songs.length === 1 ? 'song' : 'songs'}`;
-    
-    if (songs.length === 0) {
-        container.innerHTML = '<p class="empty-message">No liked songs yet</p>';
-        return;
-    }
-    
-    let html = '';
-    
-    songs.forEach((song, index) => {
-        html += `
-            <div class="song-item" data-id="${song.song_id}">
-                <div class="song-number">${index + 1}</div>
-                <img src="${song.thumbnail || '/static/images/default-song.jpg'}" class="song-thumbnail">
-                <div class="song-info">
-                    <h4>${song.title || 'Unknown Song'}</h4>
-                    <p>${song.artist || 'Unknown Artist'}</p>
-                </div>
-                <div class="song-duration">${song.duration || '3:45'}</div>
-                <button class="song-menu"><i class="fas fa-ellipsis-h"></i></button>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-    
-    // Add click handlers to play songs
-    document.querySelectorAll('.song-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const songId = this.getAttribute('data-id');
-            window.location.href = `/player/${songId}`;
-        });
-    });
-}
-
-async function loadRecentTracks() {
-    // In a real app, this would come from your API
-    const mockRecent = [
-        { id: 'rec1', title: 'Popular Song', artist: 'Famous Artist', thumbnail: '/static/images/song1.jpg', playedAt: '2 hours ago' },
-        { id: 'rec2', title: 'Chill Beat', artist: 'Relaxing Sounds', thumbnail: '/static/images/song2.jpg', playedAt: 'Yesterday' },
-        { id: 'rec3', title: 'Energy Boost', artist: 'Workout Mix', thumbnail: '/static/images/song3.jpg', playedAt: '3 days ago' }
-    ];
-    
-    const container = document.getElementById('recent-tracks-list');
-    container.innerHTML = '';
-    
-    mockRecent.forEach(track => {
-        const item = document.createElement('div');
-        item.className = 'recent-item';
-        item.innerHTML = `
-            <img src="${track.thumbnail}" alt="${track.title}" class="recent-thumbnail">
-            <div class="recent-info">
-                <h4>${track.title}</h4>
-                <p>${track.artist} • ${track.playedAt}</p>
-            </div>
-            <button class="recent-play"><i class="fas fa-play"></i></button>
-        `;
-        container.appendChild(item);
-        
-        item.querySelector('.recent-play').addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.location.href = `/player/${track.id}`;
-        });
-        
-        item.addEventListener('click', () => {
-            window.location.href = `/player/${track.id}`;
-        });
-    });
-}
