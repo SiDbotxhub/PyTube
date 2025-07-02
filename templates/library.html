@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="library-header">
+    <h1>Your Library</h1>
+    <div class="library-tabs">
+        <button class="tab-btn active" data-tab="playlists">Playlists</button>
+        <button class="tab-btn" data-tab="liked">Liked Songs</button>
+        <button class="tab-btn" data-tab="recent">Recently Played</button>
+    </div>
+</div>
+
+<div class="tab-content active" id="playlists-tab">
+    <div class="create-playlist-card">
+        <div class="create-content">
+            <i class="fas fa-plus-circle"></i>
+            <h3>Create Playlist</h3>
+        </div>
+    </div>
+
+    <div class="playlists-grid" id="user-playlists">
+        <!-- Playlists will be loaded here -->
+    </div>
+</div>
+
+<div class="tab-content" id="liked-tab">
+    <div class="liked-songs-header">
+        <div class="liked-info">
+            <h2>Liked Songs</h2>
+            <p id="liked-count">0 liked songs</p>
+        </div>
+        <button class="play-all-btn">
+            <i class="fas fa-play"></i>
+            <span>Play All</span>
+        </button>
+    </div>
+
+    <div class="songs-list" id="liked-songs-list">
+        <!-- Liked songs will be loaded here -->
+    </div>
+</div>
+
+<div class="tab-content" id="recent-tab">
+    <div class="recent-header">
+        <h2>Recently Played</h2>
+    </div>
+
+    <div class="recent-tracks" id="recent-tracks-list">
+        <!-- Recently played tracks will be loaded here -->
+    </div>
+</div>
+{% endblock %}
